@@ -1,0 +1,4 @@
+'''
+Project entry point.
+'''
+
