@@ -33,14 +33,6 @@ DIRECTIONS = {
 class GameState:
     """
     Represents the complete state of a Quoridor game at any point in time.
- 
-    Attributes
-    ----------
-    pawn_positions : dict {PLAYER1: (row, col), PLAYER2: (row, col)}
-    walls_remaining : dict {PLAYER1: int, PLAYER2: int} - walls left to place
-    placed_walls : set of (row, col, orientation) All walls currently on the board.
-    current_player : int Whose turn it is (PLAYER1 or PLAYER2).
-    winner : int or None Set to the winning player once the game is over, else None.
     """
     
     def __init__(self):
@@ -113,18 +105,13 @@ class GameState:
         return 0 <= row < BOARD_SIZE and 0 <= col < BOARD_SIZE
  
     def is_valid_wall_position(self, row: int, col: int) -> bool:
-        """
-        Wall anchor positions must be in 0..7 for both row and col,
-        because a wall spans two cells and must not fall off the edge.
-        """
         return 0 <= row < BOARD_SIZE - 1 and 0 <= col < BOARD_SIZE - 1
  
      # Applying moves
  
     def apply_pawn_move(self, player: int, new_position: tuple[int, int]) -> None:
         """
-        Move a pawn to new_position and advance the turn.
-        Assumes the move has already been validated by MoveValidator.
+        Move a pawn to new_position and advance the turn. (the move has already been validated by MoveValidator.)
         """
         if player != self.current_player:
             raise ValueError(f"It is not player {player}'s turn.")
@@ -136,8 +123,7 @@ class GameState:
  
     def apply_wall_placement(self, player: int, row: int, col: int, orientation: str) -> None:
         """
-        Place a wall on the board and advance the turn.
-        Assumes the placement has already been validated by WallManager.
+        Place a wall on the board and advance the turn. ( the placement has already been validated by WallManager.)
         """
         if player != self.current_player:
             raise ValueError(f"It is not player {player}'s turn.")
@@ -148,22 +134,22 @@ class GameState:
         self.walls_remaining[player] -= 1
         self._advance_turn()
  
-    def undo_pawn_move(self, player: int, previous_position: tuple[int, int]) -> None:
-        """
-        Restore a pawn to its previous position (used by AI search rollback).
-        Also reverts the current player and clears any winner set this move.
-        """
-        self.pawn_positions[player] = previous_position
-        self.winner = None
-        self.current_player = player   # revert turn back to this player
+    # def undo_pawn_move(self, player: int, previous_position: tuple[int, int]) -> None:
+    #     """
+    #     Restore a pawn to its previous position (used by AI search rollback).
+    #     Also reverts the current player and clears any winner set this move.
+    #     """
+    #     self.pawn_positions[player] = previous_position
+    #     self.winner = None
+    #     self.current_player = player   # revert turn back to this player
  
-    def undo_wall_placement(self, player: int, row: int, col: int, orientation: str) -> None:
-        """
-        Remove a wall that was just placed (used by AI search rollback).
-        """
-        self.placed_walls.discard((row, col, orientation))
-        self.walls_remaining[player] += 1
-        self.current_player = player   # revert turn back to this player
+    # def undo_wall_placement(self, player: int, row: int, col: int, orientation: str) -> None:
+    #     """
+    #     Remove a wall that was just placed (used by AI search rollback).
+    #     """
+    #     self.placed_walls.discard((row, col, orientation))
+    #     self.walls_remaining[player] += 1
+    #     self.current_player = player   # revert turn back to this player
  
     # Internal helpers
     def _advance_turn(self) -> None:
@@ -179,8 +165,7 @@ class GameState:
      # Utility 
     def copy(self) -> "GameState":
         """
-        Return a deep copy of this GameState.
-        Useful for the AI to simulate moves without mutating the real state.
+        Return a deep copy of this GameState. For the AI to simulate moves without mutating the real state.
         """
         return deepcopy(self)
  
