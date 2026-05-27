@@ -134,22 +134,22 @@ class GameState:
         self.walls_remaining[player] -= 1
         self._advance_turn()
  
-    # def undo_pawn_move(self, player: int, previous_position: tuple[int, int]) -> None:
-    #     """
-    #     Restore a pawn to its previous position (used by AI search rollback).
-    #     Also reverts the current player and clears any winner set this move.
-    #     """
-    #     self.pawn_positions[player] = previous_position
-    #     self.winner = None
-    #     self.current_player = player   # revert turn back to this player
- 
-    # def undo_wall_placement(self, player: int, row: int, col: int, orientation: str) -> None:
-    #     """
-    #     Remove a wall that was just placed (used by AI search rollback).
-    #     """
-    #     self.placed_walls.discard((row, col, orientation))
-    #     self.walls_remaining[player] += 1
-    #     self.current_player = player   # revert turn back to this player
+    def undo_pawn_move(self, player: int, previous_position: tuple[int, int]) -> None:
+        """
+        Restore a pawn to its previous position (used by AI search rollback).
+        Also reverts the current player and clears any winner set this move.
+        """
+        self.pawn_positions[player] = previous_position
+        self.winner = None
+        self.current_player = player   # revert turn back to this player
+
+    def undo_wall_placement(self, player: int, row: int, col: int, orientation: str) -> None:
+        """
+        Remove a wall that was just placed (used by AI search rollback).
+        """
+        self.placed_walls.discard((row, col, orientation))
+        self.walls_remaining[player] += 1
+        self.current_player = player   # revert turn back to this player
  
     # Internal helpers
     def _advance_turn(self) -> None:

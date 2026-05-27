@@ -37,6 +37,42 @@ def both_players_have_path(state: GameState) -> bool:
         has_path_to_goal(state, PLAYER1) and
         has_path_to_goal(state, PLAYER2)
     )
+
+def shortest_path_length(state: GameState, player: int) -> int:
+    """
+    Calculate the shortest path length from a player's current pawn position to their goal row using BFS.
+    Returns the minimum number of moves needed to reach the goal row.
+    Used by AI heuristic to evaluate board positions.
+    """
+    start = state.get_pawn_position(player)
+    goal_row = state.goal_row(player)
+    
+    # If already at goal, distance is 0
+    if start[0] == goal_row:
+        return 0
+    
+    # BFS with distance tracking
+    visited = {start: 0}
+    queue = deque([start])
+    
+    while queue:
+        row, col = queue.popleft()
+        current_distance = visited[(row, col)]
+        
+        # Check all passable neighbors
+        for nr, nc in _passable_neighbours(state, row, col):
+            if (nr, nc) not in visited:
+                new_distance = current_distance + 1
+                
+                # If we reached the goal row, return immediately
+                if nr == goal_row:
+                    return new_distance
+                
+                visited[(nr, nc)] = new_distance
+                queue.append((nr, nc))
+    
+    # If no path found, return a large penalty value
+    return 1000
 # HELPER
 def _passable_neighbours(state: GameState, row: int, col: int) -> list[tuple[int, int]]:
     """

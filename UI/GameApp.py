@@ -7,6 +7,7 @@ from UI.PlayerHUD import PlayerHUD
 from Game.GameState import GameState
 from Game.MoveValidator import get_valid_moves, move_pawn
 from Game.WallManager import place_wall
+from AI.AIPlayer import AIPlayer
 
 # Import width and height offsets from GameBoard
 from UI.GameBoard import WIDTH as BOARD_WIDTH
@@ -14,7 +15,7 @@ from UI.GameBoard import HEIGHT as BOARD_HEIGHT
 
 RIGHT_PANEL_WIDTH = 220  # Right sidebar for buttons and info
 WIDTH = BOARD_WIDTH + RIGHT_PANEL_WIDTH
-HEIGHT = BOARD_HEIGHT 
+HEIGHT = BOARD_HEIGHT
 
 class GameApp:
     def __init__(self):
@@ -30,11 +31,16 @@ class GameApp:
         self.state = 'MENU'  # 'MENU', 'PLAYING', 'GAME_OVER'
         self.mode = None
         self.difficulty = None
+        self.ai = None  # AI player instance
         
         self.menu = Menu(WIDTH, HEIGHT, self.sys_font)
         self.game_state = None
         self.board = None
         self.hud = None
+        
+        # AI move timing
+        self.ai_move_timer = 0
+        self.ai_move_delay = 60  # Frames before AI makes a move (1 second at 60 FPS)
 
         # Application level interaction state
         self.ui_state = {
@@ -48,6 +54,41 @@ class GameApp:
         if winner:
             self.state = 'GAME_OVER'
             self.hud.set_status_message(f"Player {winner} Wins! \n Press Reset to play again.")
+    
+    def handle_ai_move(self):
+        """AI makes its move"""
+        if self.game_state.is_game_over() or not self.ai:
+            return
+        
+        if self.game_state.current_player != self.ai.player_id:
+            return  # Not AI's turn
+        
+        # Get AI's move
+        move = self.ai.choose_move(self.game_state)
+        
+        if not move:
+            print(f"[DEBUG] AI returned no move. Player={self.ai.player_id}, CurrentPlayer={self.game_state.current_player}")
+            return
+        
+        move_type, move_data = move
+        
+        if move_type == 'pawn':
+            row, col = move_data
+            success, msg = move_pawn(self.game_state, self.game_state.current_player, (row, col))
+            if success:
+                self.hud.set_status_message(f"AI moved to ({row}, {col})")
+                self.check_win()
+            else:
+                print(f"[DEBUG] Pawn move failed: {msg}")
+        
+        else:  # wall
+            row, col, orientation = move_data
+            success, msg = place_wall(self.game_state, self.game_state.current_player, row, col, orientation)
+            if success:
+                self.hud.set_status_message(f"AI placed wall at ({row}, {col}, {orientation})")
+                self.check_win()
+            else:
+                print(f"[DEBUG] Wall move failed: {msg}")
             
     def reset_game(self):
         self.game_state = GameState()
@@ -57,6 +98,15 @@ class GameApp:
         self.ui_state['selected_pawn'] = None
         self.ui_state['wall_mode'] = False
         self.ui_state['wall_orientation'] = 'h'
+        
+        # Initialize AI if Human vs AI mode
+        if self.mode == 'hva':
+            # AI is always Player 2
+            self.ai = AIPlayer(player_id=2, difficulty=self.difficulty)
+        else:
+            self.ai = None
+        
+        self.ai_move_timer = 0
         
         def on_pawn_click(player):
             if player == self.game_state.current_player:
@@ -181,6 +231,15 @@ class GameApp:
                     self.board.set_wall_preview(None)
             elif self.state == 'PLAYING' and self.board is not None and hasattr(self.board, 'wall_preview') and self.board.wall_preview is not None:
                  self.board.set_wall_preview(None)
+            
+            # Handle AI moves in Human vs AI mode
+            if self.state == 'PLAYING' and self.ai and self.game_state.current_player == self.ai.player_id:
+                self.ai_move_timer += 1
+                if self.ai_move_timer >= self.ai_move_delay:
+                    self.handle_ai_move()
+                    self.ai_move_timer = 0
+            else:
+                self.ai_move_timer = 0
 
             # Drawing
             if self.state == 'MENU':
