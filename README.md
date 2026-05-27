@@ -34,9 +34,9 @@ Quoridor is an award-winning abstract strategy board game invented by Mirko Marc
 
 ## Screenshots
 
-| Main Menu | Gameplay | AI Match |
-|-----------|----------|----------|
-| ![Menu](Assets/menu.png) | ![Gameplay](Assets/gameplay.png) | ![AI](Assets/aimatch.png) |
+| Main Menu | Gameplay |
+|-----------|----------|
+| ![Menu](Assets/menu.png) | ![Gameplay](Assets/gameplay.png) | 
 
 ---
 
