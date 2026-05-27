@@ -6,6 +6,7 @@ A fully-featured implementation of the abstract strategy board game **Quoridor**
 
 
 Submitted by:
+
 [Menna Ayman Hassan Radwan — 2200236]
 
 [Khaled Abdelghafar Mohammed Ahmed — 2300421]
